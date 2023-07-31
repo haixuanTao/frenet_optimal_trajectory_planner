@@ -4,19 +4,25 @@ import os
 from ctypes import c_double, c_int, POINTER, Structure, CDLL, byref
 
 try:
-    from py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters, \
-        FrenetReturnValues
+    from py_cpp_struct import (
+        FrenetInitialConditions,
+        FrenetHyperparameters,
+        FrenetReturnValues,
+    )
 except:
-    from frenet_optimal_trajectory_planner.FrenetOptimalTrajectory \
-        .py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters, \
-         FrenetReturnValues
+    from FrenetOptimalTrajectory.py_cpp_struct import (
+        FrenetInitialConditions,
+        FrenetHyperparameters,
+        FrenetReturnValues,
+    )
 
 try:
     cdll = CDLL("build/libFrenetOptimalTrajectory.so")
 except:
-    cdll = CDLL("{}/dependencies/frenet_optimal_trajectory_planner/"
-                "build/libFrenetOptimalTrajectory.so".format(
-                    os.getenv("PYLOT_HOME")))
+    cdll = CDLL(
+        "{}/dependencies/frenet_optimal_trajectory_planner/"
+        "build/libFrenetOptimalTrajectory.so".format(os.getenv("PYLOT_HOME"))
+    )
 
 _c_double_p = POINTER(c_double)
 
@@ -32,23 +38,48 @@ _run_fot.restype = None
 # func / return type declarations for C++ to_frenet_initial_conditions
 _to_frenet_initial_conditions = cdll.to_frenet_initial_conditions
 _to_frenet_initial_conditions.restype = None
-_to_frenet_initial_conditions.argtypes = (c_double, c_double, c_double,
-                                          c_double, c_double, c_double,
-                                          _c_double_p, _c_double_p, c_int,
-                                          _c_double_p)
+_to_frenet_initial_conditions.argtypes = (
+    c_double,
+    c_double,
+    c_double,
+    c_double,
+    c_double,
+    c_double,
+    _c_double_p,
+    _c_double_p,
+    c_int,
+    _c_double_p,
+)
 
 
 def _parse_hyperparameters(hp):
     return FrenetHyperparameters(
-        hp["max_speed"], hp["max_accel"], hp["max_curvature"],
-        hp["max_road_width_l"], hp["max_road_width_r"], hp["d_road_w"],
-        hp["dt"], hp["maxt"], hp["mint"], hp["d_t_s"], hp["n_s_sample"],
-        hp["obstacle_clearance"], hp["kd"], hp["kv"], hp["ka"], hp["kj"],
-        hp["kt"], hp["ko"], hp["klat"], hp["klon"], hp["num_threads"])
+        hp["max_speed"],
+        hp["max_accel"],
+        hp["max_curvature"],
+        hp["max_road_width_l"],
+        hp["max_road_width_r"],
+        hp["d_road_w"],
+        hp["dt"],
+        hp["maxt"],
+        hp["mint"],
+        hp["d_t_s"],
+        hp["n_s_sample"],
+        hp["obstacle_clearance"],
+        hp["kd"],
+        hp["kv"],
+        hp["ka"],
+        hp["kj"],
+        hp["kt"],
+        hp["ko"],
+        hp["klat"],
+        hp["klon"],
+        hp["num_threads"],
+    )
 
 
 def run_fot(initial_conditions, hyperparameters):
-    """ Return the frenet optimal trajectory given initial conditions in
+    """Return the frenet optimal trajectory given initial conditions in
     cartesian space.
 
     Args:
@@ -99,8 +130,7 @@ def run_fot(initial_conditions, hyperparameters):
         success (bool): whether a fot was found or not
     """
     # parse initial conditions and convert to frenet coordinates
-    fot_initial_conditions, misc = to_frenet_initial_conditions(
-        initial_conditions)
+    fot_initial_conditions, misc = to_frenet_initial_conditions(initial_conditions)
 
     # parse hyper parameters
     fot_hp = _parse_hyperparameters(hyperparameters)
@@ -145,12 +175,25 @@ def run_fot(initial_conditions, hyperparameters):
 
     success = fot_rv.success
 
-    return x_path, y_path, speeds, ix, iy, iyaw, d, s, \
-           speeds_x, speeds_y, params, costs, success
+    return (
+        x_path,
+        y_path,
+        speeds,
+        ix,
+        iy,
+        iyaw,
+        d,
+        s,
+        speeds_x,
+        speeds_y,
+        params,
+        costs,
+        success,
+    )
 
 
 def to_frenet_initial_conditions(initial_conditions):
-    """ Convert the cartesian initial conditions into frenet initial conditions.
+    """Convert the cartesian initial conditions into frenet initial conditions.
 
     Args:
         initial_conditions (dict): dictionary containing
@@ -165,12 +208,12 @@ def to_frenet_initial_conditions(initial_conditions):
         FrenetInitialConditions, dictionary for debugging
     """
     # parse the initial conditions
-    ps = initial_conditions['ps']
-    pos = initial_conditions['pos']
-    vel = initial_conditions['vel']
-    wp = initial_conditions['wp']
-    obs = initial_conditions['obs']
-    target_speed = initial_conditions['target_speed']
+    ps = initial_conditions["ps"]
+    pos = initial_conditions["pos"]
+    vel = initial_conditions["vel"]
+    wp = initial_conditions["wp"]
+    obs = initial_conditions["obs"]
+    target_speed = initial_conditions["target_speed"]
     if obs.shape[0] == 0:
         obs = np.empty((0, 4))
     x = pos[0].item()
@@ -187,31 +230,39 @@ def to_frenet_initial_conditions(initial_conditions):
 
     # construct return array and convert initial conditions
     misc = np.zeros(5)
-    _to_frenet_initial_conditions(c_double(ps), c_double(x), c_double(y),
-                                  c_double(vx), c_double(vy),
-                                  c_double(forward_speed),
-                                  wx.ctypes.data_as(_c_double_p),
-                                  wy.ctypes.data_as(_c_double_p),
-                                  c_int(len(wx)),
-                                  misc.ctypes.data_as(_c_double_p))
+    _to_frenet_initial_conditions(
+        c_double(ps),
+        c_double(x),
+        c_double(y),
+        c_double(vx),
+        c_double(vy),
+        c_double(forward_speed),
+        wx.ctypes.data_as(_c_double_p),
+        wy.ctypes.data_as(_c_double_p),
+        c_int(len(wx)),
+        misc.ctypes.data_as(_c_double_p),
+    )
 
     # return the FrenetInitialConditions structure
-    return FrenetInitialConditions(
-        misc[0],  # c_s
-        misc[1],  # c_speed
-        misc[2],  # c_d
-        misc[3],  # c_d_d
-        misc[4],  # c_d_dd
-        target_speed,  # target speed
-        wx.ctypes.data_as(_c_double_p),  # waypoints x position
-        wy.ctypes.data_as(_c_double_p),  # waypoints y position
-        len(wx),
-        o_llx.ctypes.data_as(_c_double_p),  # obstacles lower left x
-        o_lly.ctypes.data_as(_c_double_p),  # obstacles lower left y
-        o_urx.ctypes.data_as(_c_double_p),  # obstacles upper right x
-        o_ury.ctypes.data_as(_c_double_p),  # obstacles upper right y
-        len(o_llx),
-    ), misc
+    return (
+        FrenetInitialConditions(
+            misc[0],  # c_s
+            misc[1],  # c_speed
+            misc[2],  # c_d
+            misc[3],  # c_d_d
+            misc[4],  # c_d_dd
+            target_speed,  # target speed
+            wx.ctypes.data_as(_c_double_p),  # waypoints x position
+            wy.ctypes.data_as(_c_double_p),  # waypoints y position
+            len(wx),
+            o_llx.ctypes.data_as(_c_double_p),  # obstacles lower left x
+            o_lly.ctypes.data_as(_c_double_p),  # obstacles lower left y
+            o_urx.ctypes.data_as(_c_double_p),  # obstacles upper right x
+            o_ury.ctypes.data_as(_c_double_p),  # obstacles upper right y
+            len(o_llx),
+        ),
+        misc,
+    )
 
 
 #############################################################
@@ -256,8 +307,35 @@ def query_anytime_planner_path(fot_planner, return_rv_object=False):
 
     success = fot_rv.success
     if return_rv_object:
-        return x_path, y_path, speeds, ix, iy, iyaw, d, s, \
-            speeds_x, speeds_y, params, costs, success, fot_rv
+        return (
+            x_path,
+            y_path,
+            speeds,
+            ix,
+            iy,
+            iyaw,
+            d,
+            s,
+            speeds_x,
+            speeds_y,
+            params,
+            costs,
+            success,
+            fot_rv,
+        )
     else:
-        return x_path, y_path, speeds, ix, iy, iyaw, d, s, \
-            speeds_x, speeds_y, params, costs, success
+        return (
+            x_path,
+            y_path,
+            speeds,
+            ix,
+            iy,
+            iyaw,
+            d,
+            s,
+            speeds_x,
+            speeds_y,
+            params,
+            costs,
+            success,
+        )

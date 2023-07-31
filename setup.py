@@ -1,7 +1,6 @@
 from setuptools import Distribution
 import setuptools.command.build_ext as _build_ext
 from distutils.core import setup, Extension
-import sys
 import os
 import subprocess
 
@@ -9,7 +8,7 @@ import subprocess
 # For running external build
 class build_ext(_build_ext.build_ext):
     def run(self):
-        command = ["./build.sh", "-p", sys.executable]
+        command = ["./build.sh"]
         subprocess.check_call(command)
 
 
@@ -20,9 +19,8 @@ class BinaryDistribution(Distribution):
 
 def main():
     pwd = os.path.dirname(os.path.realpath(__file__))
-    os.system("./build.sh")
-    os.environ["CC"] = "g++"
-    os.environ["CXX"] = "g++"
+    # os.environ["CC"] = "g++"
+    # os.environ["CXX"] = "g++"
     # Path to Eigen might differ, replace path if necessary
     CFLAGS = [
         "-std=c++11",
@@ -67,6 +65,7 @@ def main():
         author="ERDOS Project",
         url="https://github.com/erdos-project/",
         ext_modules=[module],
+        cmdclass={"build_ext": build_ext},
     )
 
 
