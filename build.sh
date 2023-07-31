@@ -1,5 +1,4 @@
 #!/bin/bash
-sudo apt-get install -y libeigen3-dev clang cmake
 if [ -d "build" ]; then
   rm -rf build dist
 fi
