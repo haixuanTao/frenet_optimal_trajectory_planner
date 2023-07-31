@@ -10,19 +10,21 @@ try:
         FrenetReturnValues,
     )
 except:
-    from FrenetOptimalTrajectory.py_cpp_struct import (
+    from frenetoptimaltrajectory.py_cpp_struct import (
         FrenetInitialConditions,
         FrenetHyperparameters,
         FrenetReturnValues,
     )
 
+import pathlib
+
+
+cwd = pathlib.Path(__file__).parent.resolve()
+
 try:
     cdll = CDLL("build/libFrenetOptimalTrajectory.so")
 except:
-    cdll = CDLL(
-        "{}/dependencies/frenet_optimal_trajectory_planner/"
-        "build/libFrenetOptimalTrajectory.so".format(os.getenv("PYLOT_HOME"))
-    )
+    cdll = CDLL(f"{cwd}/libFrenetOptimalTrajectory.so")
 
 _c_double_p = POINTER(c_double)
 

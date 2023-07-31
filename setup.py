@@ -4,6 +4,8 @@ from distutils.core import setup, Extension
 import os
 import subprocess
 
+from setuptools import find_packages
+
 
 # For running external build
 class build_ext(_build_ext.build_ext):
@@ -22,6 +24,8 @@ def main():
     # os.environ["CC"] = "g++"
     # os.environ["CXX"] = "g++"
     # Path to Eigen might differ, replace path if necessary
+    command = ["./build.sh"]
+    subprocess.check_call(command)
     CFLAGS = [
         "-std=c++11",
         "-fPIC",
@@ -53,19 +57,23 @@ def main():
             "src/FrenetOptimalTrajectory",
             "src/Obstacle",
             "src/Car",
+            "FrenetOptimalTrajectory",
         ],
         extra_compile_args=CFLAGS,
         extra_link_args=LDFLAGS,
     )
 
     setup(
-        name="fot_planner",
+        name="frenetoptimaltrajectory",
         version="1.0.0",
         description="FOT Planner",
         author="ERDOS Project",
+        packages=find_packages(),
         url="https://github.com/erdos-project/",
-        ext_modules=[module],
-        cmdclass={"build_ext": build_ext},
+        package_data={"": ["**/*.so"]},
+        include_package_data=True,
+        # ext_modules=[module],
+        # cmdclass={"build_ext": build_ext},
     )
 
 

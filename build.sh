@@ -6,3 +6,5 @@ mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . --target all -- -j 8
+cd ..
+cp build/libFrenetOptimalTrajectory.so frenetoptimaltrajectory
